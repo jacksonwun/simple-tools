@@ -1,27 +1,105 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Binary to Decimal Converter</title>
-    <script>
-        function toDecimal() {
-            let binary = document.getElementById("binary").value;
-            document.getElementById("decimal").value = parseInt(binary, 2);
-        }
-        function toBinary() {
-            let decimal = document.getElementById("decimal").value;
-            document.getElementById("binary").value = Number(decimal).toString(2);
-        }
-    </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Binary ↔ Decimal Converter</title>
+  <meta name="description" content="Fast and simple binary to decimal converter. Convert numbers between binary and decimal instantly, perfect for developers and students.">
 </head>
-<body>
-    <h2>Binary to Decimal Converter</h2>
-    Binary: <input type="text" id="binary" placeholder="Enter binary..."> 
-    <button onclick="toDecimal()">Convert to Decimal</button>
-    <input type="text" id="decimal" readonly>
+<di>
+    <div id="nav-placeholder"></div>
+    <script>
+      fetch("../includes/nav.html")
+        .then(response => response.text())
+        .then(console.log('run'))
+        .then(data => {
+          document.getElementById("nav-placeholder").innerHTML = data;
+        })
+        .catch(error => console.error("Error loading navigation:", error));
+    </script>
 
-    <br><br>
-    Decimal: <input type="text" id="decimal" placeholder="Enter decimal..."> 
-    <button onclick="toBinary()">Convert to Binary</button>
-    <input type="text" id="binary" readonly>
+<div id="container" style="justify-self: center;">
+    <h2>Binary ↔ Decimal Converter</h2>
+
+    <div class="container" style="display: flex; flex-direction: row; justify-self: center; gap: 20px;">
+
+    <!-- 左邊：Binary 區域 -->
+    <div class="section" style="display: flex; flex-direction: column;">
+        <label for="binaryArea">Binary</label>
+        <textarea id="binaryArea" placeholder="Put Binary here..." style="min-height: 50vh; min-width: 25vw;"></textarea>
+        <div class="buttons">
+        <button onclick="toDecimal()">Convert → Decimal</button>
+        <button onclick="clearBinary()">Clear</button>
+        <button onclick="copyBinary()">Copy</button>
+        </div>
+    </div>
+
+    <!-- 右邊：Decimal 區域 -->
+    <div class="section" style="display: flex; flex-direction: column;">
+        <label for="decimalArea">Decimal</label>
+        <textarea id="decimalArea" placeholder="Put Decimal here..." style="min-height: 50vh; min-width: 25vw;"></textarea>
+        <div class="buttons">
+        <button onclick="toBinary()">Convert → Binary</button>
+        <button onclick="clearDecimal()">Clear</button>
+        <button onclick="copyDecimal()">Copy</button>
+        </div>
+    </div>
+
+    </div>
+</div>
 </body>
+
+<script>
+    // Binary -> Decimal
+    function toDecimal() {
+      const binaryValue = document.getElementById("binaryArea").value.trim();
+      // 檢查是否只有 0 和 1
+      if (!/^[01]+$/.test(binaryValue)) {
+        alert("Invalid Binary Input! Only digits '0' and '1' are allowed.");
+        return;
+      }
+      // 將二進位字串轉為 10 進位
+      const decimalValue = parseInt(binaryValue, 2);
+      document.getElementById("decimalArea").value = decimalValue;
+    }
+  
+    // Decimal -> Binary
+    function toBinary() {
+      const decimalValue = document.getElementById("decimalArea").value.trim();
+      // 檢查是否為正整數 (如需支援負數或小數可自行擴充)
+      if (!/^\d+$/.test(decimalValue)) {
+        alert("Invalid Decimal Input! Only numeric digits are allowed.");
+        return;
+      }
+      // 將十進位轉為二進位字串
+      const binaryValue = Number(decimalValue).toString(2);
+      document.getElementById("binaryArea").value = binaryValue;
+    }
+  
+    // 清除 Binary 欄位
+    function clearBinary() {
+      document.getElementById("binaryArea").value = "";
+    }
+  
+    // 清除 Decimal 欄位
+    function clearDecimal() {
+      document.getElementById("decimalArea").value = "";
+    }
+  
+    // 複製 Binary 欄位內容
+    function copyBinary() {
+      const binaryArea = document.getElementById("binaryArea");
+      binaryArea.select();
+      document.execCommand("copy");
+      alert("Binary copied to clipboard!");
+    }
+  
+    // 複製 Decimal 欄位內容
+    function copyDecimal() {
+      const decimalArea = document.getElementById("decimalArea");
+      decimalArea.select();
+      document.execCommand("copy");
+      alert("Decimal copied to clipboard!");
+    }
+  </script>
 </html>

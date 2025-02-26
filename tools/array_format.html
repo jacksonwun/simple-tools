@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Array Converter</title>
+    <meta name="description" content="Free online array formatter to organize and beautify JavaScript and Python arrays for developers.">
+</head>
+
+<body>
+    <div id="nav-placeholder"></div>
+    <script>
+      fetch("../includes/nav.html")
+        .then(response => response.text())
+        .then(console.log('run'))
+        .then(data => {
+          document.getElementById("nav-placeholder").innerHTML = data;
+        })
+        .catch(error => console.error("Error loading navigation:", error));
+    </script>
+    <div id="container" style="justify-self: center;">
+
+        <h2>Convert Text to Array Format</h2>
+
+        <!-- 輸入區域 -->
+        <textarea id="inputText" placeholder="Enter items, one per line..." style="min-height: 40vh; min-width: 60vw;"></textarea>
+    
+        <!-- 選項區域 -->
+        <div class="controls">
+            <div>
+                <strong>Quote Style:</strong>
+                <label>
+                    <input type="radio" name="quoteType" value="&quot;" checked/>
+                    Double Quotes (")
+                </label>
+                <label>
+                    <input type="radio" name="quoteType" value="&#39;"/>
+                    Single Quotes (')
+                </label>
+                <label>
+                    <input type="radio" name="quoteType" value="none"/>
+                    No Quotes
+                </label>
+            </div>
+            <div>
+                <strong>Additional Options:</strong>
+                <label>
+                    <input type="checkbox" id="quoteNumbers" checked/>
+                    Quote Numbers
+                </label>
+                <label>
+                    <input type="checkbox" id="addBrackets"/>
+                    Add Brackets [  ]
+                </label>
+                <label>
+                    <input type="checkbox" id="multiLine"/>
+                    Multi-line Output
+                </label>
+                <label>
+                    <input type="checkbox" id="spaceComma" checked/>
+                    Add space after comma
+                </label>
+            </div>
+        </div>
+    
+        <!-- 功能按鈕 -->
+        <button onclick="convertToArray()">Convert</button>
+        <button onclick="clearInput()">Clear Input</button>
+        <button onclick="copyOutput()">Copy Output</button>
+    
+        <!-- 輸出結果 -->
+        <h3>Output:</h3>
+        <div class="output-container">
+            <pre id="output"></pre>
+        </div>
+    </div>
+</body>
+
+<script>
+    function convertToArray() {
+        let inputText       = document.getElementById("inputText").value.trim();
+        let quoteType       = document.querySelector('input[name="quoteType"]:checked').value;
+        let quoteNumbers    = document.getElementById("quoteNumbers").checked;
+        let addBrackets     = document.getElementById("addBrackets").checked;
+        let multiLine       = document.getElementById("multiLine").checked;
+        let spaceAfterComma = document.getElementById("spaceComma").checked;
+
+        // 拆分每行並過濾空白
+        let lines = inputText.split("\n")
+                            .map(line => line.trim())
+                            .filter(line => line !== "");
+
+        // 判斷是否為數字
+        function isNumber(value) {
+            return !isNaN(value) && value.trim() !== "";
+        }
+
+        // 根據引號設定與是否為數字來處理每個元素
+        let formattedList = lines.map(item => {
+            // 如果無引號模式
+            if (quoteType === "none") {
+                // 若勾選「Quote Numbers」且為數字 -> 加上預設的雙引號
+                if (quoteNumbers && isNumber(item)) {
+                    return `"${item}"`;
+                } else {
+                    return item;
+                }
+            }
+            // 如果有選擇單引號或雙引號
+            else {
+                // 若是數字，且沒有勾選「Quote Numbers」，不加引號
+                if (!quoteNumbers && isNumber(item)) {
+                    return item;
+                } else {
+                    return `${quoteType}${item}${quoteType}`;
+                }
+            }
+        });
+
+        // 根據多行/單行輸出，以及「逗號後是否有空格」
+        let separator = ",";
+        if (multiLine) {
+            separator = ",\n";
+        } else if (spaceAfterComma) {
+            separator = ", ";
+        }
+
+        // 若勾選「Add Brackets」，則在前後加上中括號
+        let outputContent = addBrackets 
+            ? `[${formattedList.join(separator)}]`
+            : formattedList.join(separator);
+
+        document.getElementById("output").textContent = outputContent;
+    }
+
+    // 清除輸入
+    function clearInput() {
+        document.getElementById("inputText").value = "";
+        document.getElementById("output").textContent = "";
+    }
+
+    // 複製輸出內容到剪貼簿
+    function copyOutput() {
+        let output = document.getElementById("output").textContent;
+        if(!output) return;
+
+        // 建立一個暫時的 textarea 來執行複製
+        let tempInput = document.createElement("textarea");
+        tempInput.value = output;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand("copy");
+        document.body.removeChild(tempInput);
+
+        alert("Output copied to clipboard!");
+    }
+</script>
+
+</html>

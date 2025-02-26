@@ -1,23 +1,349 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-    <title>HTML Entity Converter</title>
-    <script>
-        function encode() {
-            let text = document.getElementById("input").value;
-            document.getElementById("output").value = text.replace(/./g, c => `&#${c.charCodeAt(0)};`);
-        }
-        function decode() {
-            let text = document.getElementById("output").value;
-            document.getElementById("input").value = text.replace(/&#(\d+);/g, (_, n) => String.fromCharCode(n));
-        }
-    </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HTML Entity Converter</title>
+  <meta name="description" content="Free HTML entity encoder and decoder. Convert special HTML characters easily, perfect for web developers.">
 </head>
+
 <body>
-    <h2>HTML Entity Converter</h2>
-    <textarea id="input" placeholder="Enter text..."></textarea>
-    <button onclick="encode()">Encode</button>
-    <button onclick="decode()">Decode</button>
-    <textarea id="output" placeholder="HTML entities result..."></textarea>
+    <div id="nav-placeholder"></div>
+    <script>
+      fetch("../includes/nav.html")
+        .then(response => response.text())
+        .then(console.log('run'))
+        .then(data => {
+          document.getElementById("nav-placeholder").innerHTML = data;
+        })
+        .catch(error => console.error("Error loading navigation:", error));
+    </script>
+
+    <div id="container" style="justify-self: center;">
+        <h2 style="margin-bottom: 10px;">HTML Entity Converter</h2>
+
+        <div style="
+        display: flex;
+        flex-direction: row;
+        gap: 20px;
+        ">
+
+        <!-- 左邊：原始文字 Text 區塊 -->
+        <div style="
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        ">
+            <label for="textArea" style="font-weight: bold; margin-bottom: 5px;">
+            Text
+            </label>
+            <textarea
+            id="textArea"
+            placeholder="Enter your text here..."
+            style="
+                min-height: 50vh;
+                min-width: 25vw;
+                font-size: 14px;
+                padding: 10px;
+                box-sizing: border-box;
+                margin-bottom: 10px;
+            "
+            ></textarea>
+
+            <!-- 編碼選項 -->
+            <div style="
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+            ">
+            <label style="font-weight: bold; margin-bottom: 0;">
+                Encode Mode:
+            </label>
+            <label style="font-weight: normal; margin-bottom: 0;">
+                <input
+                type="radio"
+                name="encodeType"
+                value="decimal"
+                checked
+                style="margin-right: 5px;"
+                />
+                Decimal (&#65;)
+            </label>
+            <label style="font-weight: normal; margin-bottom: 0;">
+                <input
+                type="radio"
+                name="encodeType"
+                value="hex"
+                style="margin-right: 5px;"
+                />
+                Hex (&#x41;)
+            </label>
+            <label style="font-weight: normal; margin-bottom: 0;">
+                <input
+                type="checkbox"
+                id="onlySpecial"
+                style="margin-right: 5px;"
+                />
+                Only Special Chars
+            </label>
+            </div>
+
+            <!-- 按鈕功能：Encode / Clear / Copy -->
+            <div style="
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            ">
+            <button
+                onclick="encodeText()"
+                style="
+                padding: 8px 12px;
+                background-color: #007bff;
+                color: #fff;
+                border: none;
+                cursor: pointer;
+                font-size: 14px;
+                border-radius: 4px;
+                "
+            >
+                Encode →
+            </button>
+            <button
+                onclick="clearText()"
+                style="
+                padding: 8px 12px;
+                background-color: #007bff;
+                color: #fff;
+                border: none;
+                cursor: pointer;
+                font-size: 14px;
+                border-radius: 4px;
+                "
+            >
+                Clear
+            </button>
+            <button
+                onclick="copyText()"
+                style="
+                padding: 8px 12px;
+                background-color: #007bff;
+                color: #fff;
+                border: none;
+                cursor: pointer;
+                font-size: 14px;
+                border-radius: 4px;
+                "
+            >
+                Copy
+            </button>
+            </div>
+        </div>
+
+        <!-- 右邊：HTML Entities 區塊 -->
+        <div style="
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        ">
+            <label for="entitiesArea" style="font-weight: bold; margin-bottom: 5px;">
+            HTML Entities
+            </label>
+            <textarea
+            id="entitiesArea"
+            placeholder="HTML Entities here..."
+            style="
+                min-height: 50vh;
+                min-width: 25vw;
+                font-size: 14px;
+                padding: 10px;
+                box-sizing: border-box;
+                margin-bottom: 10px;
+            "
+            ></textarea>
+
+            <!-- 按鈕功能：Decode / Clear / Copy -->
+            <div style="
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            ">
+            <button
+                onclick="decodeText()"
+                style="
+                padding: 8px 12px;
+                background-color: #007bff;
+                color: #fff;
+                border: none;
+                cursor: pointer;
+                font-size: 14px;
+                border-radius: 4px;
+                "
+            >
+                Decode →
+            </button>
+            <button
+                onclick="clearEntities()"
+                style="
+                padding: 8px 12px;
+                background-color: #007bff;
+                color: #fff;
+                border: none;
+                cursor: pointer;
+                font-size: 14px;
+                border-radius: 4px;
+                "
+            >
+                Clear
+            </button>
+            <button
+                onclick="copyEntities()"
+                style="
+                padding: 8px 12px;
+                background-color: #007bff;
+                color: #fff;
+                border: none;
+                cursor: pointer;
+                font-size: 14px;
+                border-radius: 4px;
+                "
+            >
+                Copy
+            </button>
+            </div>
+        </div>
+
+        </div>
+    </div>
 </body>
+<script>
+    /*
+      Encode Text → HTML Entities
+      可選：
+       1. Decimal (&#65;)
+       2. Hex (&#x41;)
+       3. Only Special Chars: 只編碼 <, >, &, ", '，其餘保留
+    */
+    function encodeText() {
+      const textVal = document.getElementById("textArea").value;
+      const encodeType = document.querySelector('input[name="encodeType"]:checked').value;
+      const onlySpecial = document.getElementById("onlySpecial").checked;
+    
+      let result = "";
+      for (let ch of textVal) {
+        // 若只編碼特殊字元，檢查是否屬於需編碼範圍
+        if (onlySpecial) {
+          if (!isSpecialChar(ch)) {
+            // 非特殊字元，直接保留
+            result += ch;
+            continue;
+          }
+        }
+    
+        // 執行編碼
+        let code = ch.charCodeAt(0);
+        if (encodeType === "decimal") {
+          result += `&#${code};`;
+        } else if (encodeType === "hex") {
+          result += `&#x${code.toString(16)};`;
+        }
+      }
+    
+      document.getElementById("entitiesArea").value = onlySpecial 
+        ? result 
+        : (result || textVal.replace(/[\s\S]/g, c => toEntity(c, encodeType)));
+      /*
+        說明：
+        - 如果 "onlySpecial" = true，已於迴圈處理完所有字元(只編碼特殊)。
+        - 如果 "onlySpecial" = false，就要編碼所有字元。
+          以防上方迴圈 result 一直累加，我這裡偷個懶：若 result 為空，表示上方沒做任何處理→ 直接整批 encode
+          (主要避免邏輯重疊太複雜。)
+      */
+    }
+    
+    // 輔助：判斷是否需編碼的特殊字元
+    function isSpecialChar(ch) {
+      return /[<>&"']/.test(ch);
+    }
+    
+    // 輔助：將單一字元轉為對應的 HTML Entity (decimal / hex)
+    function toEntity(c, encodeType) {
+      const code = c.charCodeAt(0);
+      if (encodeType === "decimal") {
+        return `&#${code};`;
+      }
+      return `&#x${code.toString(16)};`;
+    }
+    
+    /*
+      Decode HTML Entities → Text
+      - Decimal Numeric: &#(\d+);
+      - Hex Numeric: &#x([0-9A-Fa-f]+);
+      - Named (common ones): &amp;, &lt;, &gt;, &quot;, &apos;
+    */
+    function decodeText() {
+      let entitiesVal = document.getElementById("entitiesArea").value;
+    
+      // 解碼常見 Named Entities
+      // 若要更全面，可自行擴充字典
+      const namedMap = {
+        amp: "&",
+        lt: "<",
+        gt: ">",
+        quot: "\"",
+        apos: "'",
+      };
+      entitiesVal = entitiesVal.replace(/&(\w+);/g, (match, name) => {
+        return namedMap[name] || match; // 若找不到，就保留原狀
+      });
+    
+      // 解碼 decimal numeric
+      entitiesVal = entitiesVal.replace(/&#(\d+);/g, (match, dec) => {
+        return String.fromCharCode(parseInt(dec, 10));
+      });
+    
+      // 解碼 hex numeric
+      entitiesVal = entitiesVal.replace(/&#x([0-9A-Fa-f]+);/g, (match, hex) => {
+        return String.fromCharCode(parseInt(hex, 16));
+      });
+    
+      document.getElementById("textArea").value = entitiesVal;
+    }
+    
+    // 清除 textArea
+    function clearText() {
+      document.getElementById("textArea").value = "";
+    }
+    
+    // 清除 entitiesArea
+    function clearEntities() {
+      document.getElementById("entitiesArea").value = "";
+    }
+    
+    // 複製 textArea
+    function copyText() {
+      const textVal = document.getElementById("textArea");
+      if (!textVal.value) {
+        alert("Nothing to copy in Text area!");
+        return;
+      }
+      textVal.select();
+      document.execCommand("copy");
+      alert("Text copied to clipboard!");
+    }
+    
+    // 複製 entitiesArea
+    function copyEntities() {
+      const entVal = document.getElementById("entitiesArea");
+      if (!entVal.value) {
+        alert("Nothing to copy in Entities area!");
+        return;
+      }
+      entVal.select();
+      document.execCommand("copy");
+      alert("Entities copied to clipboard!");
+    }
+    </script>
 </html>

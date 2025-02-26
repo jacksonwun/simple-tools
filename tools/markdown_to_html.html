@@ -1,19 +1,276 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-    <title>Markdown to HTML</title>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script>
-        function convertMarkdown() {
-            let input = document.getElementById("input").value;
-            document.getElementById("output").innerHTML = marked.parse(input);
-        }
-    </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Markdown to HTML Converter</title>
+  <!-- 標記：需要 CDN 版本的 marked.js -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
+
 <body>
-    <h2>Markdown to HTML</h2>
-    <textarea id="input" placeholder="Enter Markdown..."></textarea>
-    <button onclick="convertMarkdown()">Convert</button>
-    <div id="output"></div>
+    <div id="nav-placeholder"></div>
+    <script>
+      fetch("../includes/nav.html")
+        .then(response => response.text())
+        .then(console.log('run'))
+        .then(data => {
+          document.getElementById("nav-placeholder").innerHTML = data;
+        })
+        .catch(error => console.error("Error loading navigation:", error));
+    </script>
+
+    <div id="container" style="justify-self: center;">
+        <h2 style="margin-bottom: 10px;">Markdown to HTML Converter</h2>
+
+    <!-- 上方操作區：檔案上傳 & 設定 -->
+    <div style="
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    ">
+    <strong style="margin-right: 5px;">Select Markdown file:</strong>
+    <input
+        type="file"
+        id="fileInput"
+        accept=".md,.markdown"
+        style="margin-right: 5px;"
+    />
+
+    <label style="font-weight: normal; margin-bottom: 0;">
+        <input
+        type="checkbox"
+        id="livePreview"
+        style="margin-right: 5px;"
+        />
+        Live Preview
+    </label>
+    </div>
+
+    <!-- 主要區域：左右佈局 -->
+    <div style="
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    ">
+
+    <!-- 左邊：Markdown 輸入區 -->
+    <div style="
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+    ">
+        <label for="mdInput" style="font-weight: bold; margin-bottom: 5px;">
+        Markdown
+        </label>
+        <textarea
+        id="mdInput"
+        placeholder="Type or paste your Markdown here..."
+        style="
+            min-height: 60vh;
+            min-width: 25vw;
+            font-size: 14px;
+            padding: 10px;
+            box-sizing: border-box;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin-bottom: 10px;
+        "
+        ></textarea>
+
+        <div style="
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        ">
+        <button
+            onclick="convertMarkdown()"
+            style="
+            padding: 8px 12px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            border-radius: 4px;
+            "
+        >
+            Convert →
+        </button>
+        <button
+            onclick="clearInput()"
+            style="
+            padding: 8px 12px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            border-radius: 4px;
+            "
+        >
+            Clear
+        </button>
+        </div>
+    </div>
+
+    <!-- 右邊：HTML 預覽區 -->
+    <div style="
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+    ">
+        <label for="htmlOutput" style="font-weight: bold; margin-bottom: 5px;">
+        HTML Preview
+        </label>
+        <div
+        id="htmlOutput"
+        style="
+            min-height: 60vh;
+            min-width: 25vw;
+            border: 1px solid #ccc;
+            padding: 10px;
+            box-sizing: border-box;
+            overflow: auto;
+            margin-bottom: 10px;
+        "
+        ></div>
+
+        <div style="
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        ">
+        <button
+            onclick="copyHTML()"
+            style="
+            padding: 8px 12px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            border-radius: 4px;
+            "
+        >
+            Copy HTML
+        </button>
+        <button
+            onclick="downloadHTML()"
+            style="
+            padding: 8px 12px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            border-radius: 4px;
+            "
+        >
+            Download HTML
+        </button>
+        </div>
+    </div>
+
+    </div>
+    </div>
+
 </body>
+
+<script>
+    // 1. 監聽檔案上傳：讀取 .md 檔案內容並置入 textarea
+    document.getElementById("fileInput").addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+  
+      if (!file.name.toLowerCase().match(/\.(md|markdown)$/)) {
+        alert("Please select a .md or .markdown file!");
+        e.target.value = "";
+        return;
+      }
+  
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        document.getElementById("mdInput").value = event.target.result;
+        if (document.getElementById("livePreview").checked) {
+          convertMarkdown();
+        }
+      };
+      reader.readAsText(file, "utf-8");
+    });
+  
+    // 2. Live Preview: 若勾選，自動在輸入時更新右側
+    document.getElementById("mdInput").addEventListener("input", () => {
+      if (document.getElementById("livePreview").checked) {
+        convertMarkdown();
+      }
+    });
+  
+    // 3. 轉換 Markdown → HTML
+    function convertMarkdown() {
+      const input = document.getElementById("mdInput").value;
+      const outputDiv = document.getElementById("htmlOutput");
+      outputDiv.innerHTML = marked.parse(input);
+    }
+  
+    // 4. 清空 Markdown 輸入
+    function clearInput() {
+      document.getElementById("mdInput").value = "";
+      document.getElementById("fileInput").value = "";
+      document.getElementById("htmlOutput").innerHTML = "";
+    }
+  
+    // 5. 複製 HTML 結果
+    function copyHTML() {
+      const htmlContent = document.getElementById("htmlOutput").innerHTML;
+      if (!htmlContent.trim()) {
+        alert("No HTML to copy!");
+        return;
+      }
+  
+      // 使用暫時的 textarea 來複製
+      const temp = document.createElement("textarea");
+      temp.value = htmlContent;
+      document.body.appendChild(temp);
+      temp.select();
+      document.execCommand("copy");
+      document.body.removeChild(temp);
+  
+      alert("HTML copied to clipboard!");
+    }
+  
+    // 6. 下載 HTML
+    function downloadHTML() {
+      const htmlContent = document.getElementById("htmlOutput").innerHTML;
+      if (!htmlContent.trim()) {
+        alert("No HTML to download!");
+        return;
+      }
+  
+      // 包裝成一個基本的 HTML 文件結構
+      const fullHTML = `<!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Markdown Converted</title>
+  </head>
+  <body>
+  ${htmlContent}
+  </body>
+  </html>`;
+  
+      const blob = new Blob([fullHTML], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "converted.html";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+</script>
 </html>

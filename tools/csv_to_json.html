@@ -1,23 +1,339 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>CSV to JSON</title>
-    <script>
-        function convertCSV() {
-            let csv = document.getElementById("csv").value.split("\n");
-            let keys = csv[0].split(",");
-            let json = csv.slice(1).map(line => {
-                let values = line.split(",");
-                return Object.fromEntries(keys.map((key, i) => [key, values[i]]));
-            });
-            document.getElementById("output").textContent = JSON.stringify(json, null, 4);
-        }
-    </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CSV to JSON Converter (FileReader Demo)</title>
+  <meta name="description" content="Online CSV to JSON converter. Quickly transform and format CSV data into structured JSON, ideal for data processing.">
 </head>
 <body>
-    <h2>CSV to JSON</h2>
-    <textarea id="csv" placeholder="Enter CSV..."></textarea>
-    <button onclick="convertCSV()">Convert</button>
-    <pre id="output"></pre>
+    <div id="nav-placeholder"></div>
+    <script>
+      fetch("../includes/nav.html")
+        .then(response => response.text())
+        .then(console.log('run'))
+        .then(data => {
+          document.getElementById("nav-placeholder").innerHTML = data;
+        })
+        .catch(error => console.error("Error loading navigation:", error));
+    </script>
+
+
+    <div id="container" style="justify-self: center;">
+        <h2 style="margin-bottom: 10px;">CSV to JSON Converter (with FileReader)</h2>
+
+        <div style="
+        display: flex;
+        flex-direction: row;
+        gap: 20px;
+        align-items: flex-start;
+        ">
+        
+        <!-- 左側：CSV輸入區 -->
+        <div style="
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            gap: 10px;
+        ">
+            <label for="csvInput" style="font-weight: bold;">CSV Input</label>
+            <!-- 文字區域，使用者也可直接貼上 CSV -->
+            <textarea
+            id="csvInput"
+            placeholder="Enter or paste CSV data here..."
+            style="
+                min-height: 50vh;
+                min-width: 25vw;
+                font-size: 14px;
+                padding: 10px;
+                box-sizing: border-box;
+            "
+            ></textarea>
+        
+            <!-- 上傳CSV檔案選項 -->
+            <div style="
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            ">
+            <label
+                for="fileInput"
+                style="font-weight: bold; margin-right: 5px; margin-bottom: 0;"
+            >
+                Select CSV file:
+            </label>
+            <input
+                type="file"
+                id="fileInput"
+                accept=".csv"
+                style="margin-right: 5px;"
+            />
+            </div>
+        
+            <!-- 其他設定 (Delimiter, Header Row, Ignore Empty Lines, Indent) -->
+            <div style="
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            ">
+            <label style="font-weight: bold; margin-bottom: 0;">
+                Delimiter:
+                <select id="delimiter" style="margin-right: 5px;">
+                <option value=",">Comma (,)</option>
+                <option value=";">Semicolon (;)</option>
+                <option value="tab">Tab (\t)</option>
+                </select>
+            </label>
+            <label style="font-weight: bold; margin-bottom: 0;">
+                <input
+                type="checkbox"
+                id="hasHeader"
+                checked
+                style="margin-right: 5px;"
+                />
+                Has Header Row
+            </label>
+            <label style="font-weight: bold; margin-bottom: 0;">
+                <input
+                type="checkbox"
+                id="ignoreEmptyLines"
+                checked
+                style="margin-right: 5px;"
+                />
+                Ignore Empty Lines
+            </label>
+            <label style="font-weight: bold; margin-bottom: 0;">
+                JSON Indent:
+                <select id="indentSize" style="margin-right: 5px;">
+                <option value="0">No indent (single line)</option>
+                <option value="2" selected>2 spaces</option>
+                <option value="4">4 spaces</option>
+                </select>
+            </label>
+            </div>
+        
+            <!-- 功能按鈕 -->
+            <div style="
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            ">
+            <button
+                onclick="convertCSV()"
+                style="
+                padding: 8px 12px;
+                background-color: #007bff;
+                color: #fff;
+                border: none;
+                cursor: pointer;
+                font-size: 14px;
+                border-radius: 4px;
+                "
+            >
+                Convert
+            </button>
+            <button
+                onclick="clearCSV()"
+                style="
+                padding: 8px 12px;
+                background-color: #007bff;
+                color: #fff;
+                border: none;
+                cursor: pointer;
+                font-size: 14px;
+                border-radius: 4px;
+                "
+            >
+                Clear CSV
+            </button>
+            <button
+                onclick="copyJSON()"
+                style="
+                padding: 8px 12px;
+                background-color: #007bff;
+                color: #fff;
+                border: none;
+                cursor: pointer;
+                font-size: 14px;
+                border-radius: 4px;
+                "
+            >
+                Copy JSON
+            </button>
+            <button
+                onclick="downloadJSON()"
+                style="
+                padding: 8px 12px;
+                background-color: #007bff;
+                color: #fff;
+                border: none;
+                cursor: pointer;
+                font-size: 14px;
+                border-radius: 4px;
+                "
+            >
+                Download JSON
+            </button>
+            </div>
+        
+        </div>
+        
+        <!-- 右側：JSON輸出區 -->
+        <div style="
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            gap: 10px;
+        ">
+            <label for="jsonOutput" style="font-weight: bold;">JSON Output</label>
+            <pre
+            id="jsonOutput"
+            placeholder="JSON result..."
+            style="
+                background: #f4f4f4;
+                padding: 10px;
+                border-radius: 5px;
+                overflow: auto;
+                min-height: 50vh;
+                min-width: 25vw;
+                font-size: 14px;
+                box-sizing: border-box;
+            "
+            ></pre>
+        </div>
+        
+        </div>
+    </div>
 </body>
+
+<script>
+    // ================== 1. 使用 FileReader 讀取 CSV 檔案 ===================
+    const fileInput = document.getElementById("fileInput");
+    fileInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return; // 若使用者取消選取，不做任何事
+  
+      if (!file.name.toLowerCase().endsWith(".csv")) {
+        alert("Please select a .csv file!");
+        fileInput.value = ""; // 清空已選取的檔案
+        return;
+      }
+  
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        // 讀取到的文字內容放到 textarea 中
+        document.getElementById("csvInput").value = event.target.result;
+      };
+      reader.readAsText(file, "UTF-8");
+    });
+  
+    // ================== 2. CSV → JSON 轉換邏輯 ===================
+    function convertCSV() {
+      const csvText = document.getElementById("csvInput").value.trim();
+      const delimiterSelect = document.getElementById("delimiter").value;
+      const delimiter = delimiterSelect === "tab" ? "\t" : delimiterSelect;
+      const hasHeader = document.getElementById("hasHeader").checked;
+      const ignoreEmpty = document.getElementById("ignoreEmptyLines").checked;
+      const indentSize = parseInt(document.getElementById("indentSize").value, 10);
+  
+      if (!csvText) {
+        alert("Please enter or load CSV data first!");
+        return;
+      }
+  
+      let lines = csvText.split("\n");
+      if (ignoreEmpty) {
+        lines = lines.filter(line => line.trim() !== "");
+      }
+  
+      if (lines.length === 0) {
+        document.getElementById("jsonOutput").textContent = "[]";
+        return;
+      }
+  
+      // 取得欄位 (若有標題列，第一行為欄位；否則自動產生 col1, col2, ...)
+      let keys = [];
+      let startIndex = 0;
+      if (hasHeader) {
+        keys = lines[0].split(delimiter);
+        startIndex = 1;
+      } else {
+        const numCols = lines[0].split(delimiter).length;
+        for (let i = 0; i < numCols; i++) {
+          keys.push(`col${i+1}`);
+        }
+      }
+  
+      const jsonArr = [];
+      for (let i = startIndex; i < lines.length; i++) {
+        let row = lines[i].split(delimiter);
+  
+        // 若每行欄位數不一致，可跳出提示並跳過
+        if (row.length !== keys.length) {
+          alert(
+            `Line ${i+1} has ${row.length} columns, but expected ${keys.length}.\n` +
+            "Skipping this line."
+          );
+          continue;
+        }
+  
+        const obj = {};
+        keys.forEach((key, idx) => {
+          obj[key] = row[idx];
+        });
+        jsonArr.push(obj);
+      }
+  
+      // 依照縮排設定輸出
+      const jsonString = JSON.stringify(
+        jsonArr,
+        null,
+        indentSize === 0 ? 0 : indentSize
+      );
+      document.getElementById("jsonOutput").textContent = jsonString;
+    }
+  
+    // ================== 3. 其他功能 (清除 / 複製 / 下載) ===================
+    // 清空 CSV 輸入
+    function clearCSV() {
+      document.getElementById("csvInput").value = "";
+      fileInput.value = "";
+    }
+  
+    // 複製 JSON 到剪貼簿
+    function copyJSON() {
+      const jsonOutput = document.getElementById("jsonOutput").textContent;
+      if (!jsonOutput) {
+        alert("No JSON to copy!");
+        return;
+      }
+      navigator.clipboard.writeText(jsonOutput).then(() => {
+        alert("JSON copied to clipboard!");
+      }).catch(err => {
+        alert("Failed to copy: " + err);
+      });
+    }
+  
+    // 下載 JSON 檔案
+    function downloadJSON() {
+      const jsonOutput = document.getElementById("jsonOutput").textContent;
+      if (!jsonOutput) {
+        alert("No JSON to download!");
+        return;
+      }
+      const blob = new Blob([jsonOutput], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "data.json";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+</script>
+
 </html>

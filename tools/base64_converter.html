@@ -1,23 +1,98 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Base64 Encoder/Decoder</title>
-    <script>
-        function encode() {
-            let input = document.getElementById("input").value;
-            document.getElementById("output").value = btoa(input);
-        }
-        function decode() {
-            let input = document.getElementById("output").value;
-            document.getElementById("input").value = atob(input);
-        }
-    </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Base64 Encoder/Decoder</title>
+  <meta name="description" content="Free online Base64 converter for encoding and decoding. Easily convert Base64 data for developers and data processing.">
 </head>
 <body>
-    <h2>Base64 Encoder/Decoder</h2>
-    <textarea id="input" placeholder="Enter text..."></textarea>
-    <button onclick="encode()">Encode</button>
-    <button onclick="decode()">Decode</button>
-    <textarea id="output" placeholder="Base64 result..."></textarea>
+    <div id="nav-placeholder"></div>
+    <script>
+      fetch("../includes/nav.html")
+        .then(response => response.text())
+        .then(console.log('run'))
+        .then(data => {
+          document.getElementById("nav-placeholder").innerHTML = data;
+        })
+        .catch(error => console.error("Error loading navigation:", error));
+    </script>
+
+    <div id="container" style="justify-self: center;">
+    <h2>Base64 Encoder / Decoder</h2>
+
+    <div class="container" style="display: flex; flex-direction: row; justify-self: center; gap: 20px;">
+
+    <!-- 左邊：Base64 區域 -->
+    <div class="section" style="display: flex; flex-direction: column;">
+        <label for="base64Area">Base64</label>
+        <textarea id="base64Area" placeholder="Put Base64 string here..." style="min-height: 50vh; min-width: 25vw;"></textarea>
+        <div class="buttons">
+        <button onclick="decodeBase64()">Decode → Text</button>
+        <button onclick="clearBase64()">Clear</button>
+        <button onclick="copyBase64()">Copy</button>
+        </div>
+    </div>
+
+    <!-- 右邊：Text 區域 -->
+    <div class="section" style="display: flex; flex-direction: column;">
+        <label for="textArea">Text</label>
+        <textarea id="textArea" placeholder="Put regular text here..." style="min-height: 50vh; min-width: 25vw;"></textarea>
+        <div class="buttons">
+        <button onclick="encodeToBase64()">Encode → Base64</button>
+        <button onclick="clearText()">Clear</button>
+        <button onclick="copyText()">Copy</button>
+        </div>
+    </div>
+
+    </div>
+</div>
 </body>
+
+<script>
+    // 從左邊 Base64 區域解碼到右邊 Text
+    function decodeBase64() {
+      const base64Value = document.getElementById("base64Area").value;
+      try {
+        const decoded = atob(base64Value); // 若非合法 Base64，會拋出例外
+        document.getElementById("textArea").value = decoded;
+      } catch (e) {
+        alert("Invalid Base64 string!");
+      }
+    }
+  
+    // 從右邊 Text 區域編碼到左邊 Base64
+    function encodeToBase64() {
+      const textValue = document.getElementById("textArea").value;
+      const encoded = btoa(textValue);
+      document.getElementById("base64Area").value = encoded;
+    }
+  
+    // 清除 Base64
+    function clearBase64() {
+      document.getElementById("base64Area").value = "";
+    }
+  
+    // 清除 Text
+    function clearText() {
+      document.getElementById("textArea").value = "";
+    }
+  
+    // 複製 Base64 欄位內容到剪貼簿
+    function copyBase64() {
+      const base64Area = document.getElementById("base64Area");
+      base64Area.select();
+      document.execCommand("copy");
+      alert("Base64 copied to clipboard!");
+    }
+  
+    // 複製 Text 欄位內容到剪貼簿
+    function copyText() {
+      const textArea = document.getElementById("textArea");
+      textArea.select();
+      document.execCommand("copy");
+      alert("Text copied to clipboard!");
+    }
+  </script>
+
 </html>

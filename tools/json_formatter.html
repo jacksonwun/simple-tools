@@ -1,23 +1,185 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-    <title>JSON Formatter</title>
-    <script>
-        function formatJSON() {
-            let input = document.getElementById("input").value;
-            try {
-                let json = JSON.parse(input);
-                document.getElementById("output").textContent = JSON.stringify(json, null, 4);
-            } catch (e) {
-                document.getElementById("output").textContent = "Invalid JSON";
-            }
-        }
-    </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>JSON Formatter (Single Textarea)</title>
+  <meta name="description" content="Free online JSON formatter to beautify, validate, and analyze JSON data. Improve readability and maintainability.">
 </head>
+
 <body>
-    <h2>JSON Formatter</h2>
-    <textarea id="input" placeholder="Enter JSON..."></textarea>
-    <button onclick="formatJSON()">Format</button>
-    <pre id="output"></pre>
+    <div id="nav-placeholder"></div>
+    <script>
+      fetch("../includes/nav.html")
+        .then(response => response.text())
+        .then(console.log('run'))
+        .then(data => {
+          document.getElementById("nav-placeholder").innerHTML = data;
+        })
+        .catch(error => console.error("Error loading navigation:", error));
+    </script>
+
+    <div id="container" style="justify-self: center;">
+        <h2 style="margin-bottom: 10px;">JSON Formatter</h2>
+
+        <!-- 上傳檔案區 -->
+        <div style="
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+        ">
+        <strong style="margin-right: 5px;">Select JSON file:</strong>
+        <input
+            type="file"
+            id="fileInput"
+            accept=".json,application/json"
+            style="margin-right: 5px;"
+        />
+        </div>
+
+        <!-- 選項與按鈕 -->
+        <div style="
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+        ">
+        <label style="font-weight: bold; margin-bottom: 0;">
+            Indent Size:
+            <select id="indentSize" style="margin-left: 5px;">
+            <option value="0">No indent (single line)</option>
+            <option value="2" selected>2 spaces</option>
+            <option value="4">4 spaces</option>
+            </select>
+        </label>
+
+        <button
+            onclick="formatJSON()"
+            style="
+            padding: 8px 12px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            border-radius: 4px;
+            "
+        >
+            Format
+        </button>
+
+        <button
+            onclick="clearText()"
+            style="
+            padding: 8px 12px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            border-radius: 4px;
+            "
+        >
+            Clear
+        </button>
+
+        <button
+            onclick="copyText()"
+            style="
+            padding: 8px 12px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            border-radius: 4px;
+            "
+        >
+            Copy
+        </button>
+        </div>
+
+        <!-- 單一文字區塊 -->
+        <textarea
+        id="jsonArea"
+        placeholder="Paste or type your JSON here..."
+        style="
+            display: block;
+            width: 100%;
+            min-height: 60vh;
+            font-size: 14px;
+            padding: 10px;
+            box-sizing: border-box;
+            white-space: pre-wrap;    /* 讓內容在視窗縮小時自動換行 */
+            word-wrap: break-word;    /* 打斷單行太長的字串 */
+        "
+        ></textarea>
+    </div>
+
 </body>
+
+<script>
+    // 1. 檔案上傳：讀取 JSON
+    document.getElementById("fileInput").addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+  
+      // 檢查是否為 .json
+      if (!file.name.toLowerCase().endsWith(".json")) {
+        alert("Please select a .json file!");
+        e.target.value = ""; // 清空已選取檔案
+        return;
+      }
+  
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        document.getElementById("jsonArea").value = event.target.result;
+      };
+      reader.readAsText(file, "utf-8");
+    });
+  
+    // 2. Format JSON
+    function formatJSON() {
+      const textArea = document.getElementById("jsonArea");
+      const rawJSON = textArea.value.trim();
+      const indent = parseInt(document.getElementById("indentSize").value, 10);
+  
+      if (!rawJSON) {
+        return alert("No JSON provided!");
+      }
+  
+      try {
+        const parsed = JSON.parse(rawJSON);
+        const formatted = JSON.stringify(parsed, null, indent === 0 ? 0 : indent);
+        textArea.value = formatted;
+      } catch (err) {
+        // 若無法 parse，就顯示錯誤提示在最前面
+        textArea.value = `Invalid JSON: ${err.message}\n\n${rawJSON}`;
+      }
+    }
+  
+    // 3. Clear 文字區
+    function clearText() {
+      document.getElementById("jsonArea").value = "";
+      document.getElementById("fileInput").value = "";
+    }
+  
+    // 4. Copy 文字區內容
+    function copyText() {
+      const jsonArea = document.getElementById("jsonArea");
+      if (!jsonArea.value.trim()) {
+        alert("Nothing to copy!");
+        return;
+      }
+  
+      jsonArea.select();
+      document.execCommand("copy");
+      alert("Copied to clipboard!");
+    }
+</script>
+
 </html>

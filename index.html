@@ -1,30 +1,32 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Simple Tools</title>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-        h1 { color: #333; }
-        ul { list-style: none; padding: 0; }
-        li { margin: 10px 0; }
-        a { text-decoration: none; font-size: 18px; color: #007bff; }
-        a:hover { text-decoration: underline; }
-    </style>
+    <title>Simple Tools - Free Online Tools (JSON, CSV, Base64, HTML)</title>
+    <script src="https://unpkg.com/htmx.org@1.9.5"></script>
+    <meta name="description" content="Free online developer tools including JSON formatter, CSV to JSON converter, Base64 encoder/decoder, HTML entity converter, and password strength checker. Optimize your workflow today!">
+
 </head>
 <body>
-    <h1>Simple Tools Collection</h1>
-    <p>Click on a tool to use it:</p>
-    <ul>
-        <li><a href="tools/json_formatter.html">JSON Formatter</a></li>
-        <li><a href="tools/markdown_to_html.html">Markdown to HTML</a></li>
-        <li><a href="tools/base64_converter.html">Base64 Encoder/Decoder</a></li>
-        <li><a href="tools/word_counter.html">Word Counter</a></li>
-        <li><a href="tools/csv_to_json.html">CSV to JSON</a></li>
-        <li><a href="tools/html_entity_converter.html">HTML Entity Converter</a></li>
-        <li><a href="tools/password_strength_checker.html">Password Strength Checker</a></li>
-        <li><a href="tools/rgb_hex_converter.html">RGB to HEX Converter</a></li>
-        <li><a href="tools/binary_decimal_converter.html">Binary to Decimal Converter</a></li>
-        <li><a href="tools/url_shortener.html">Simple URL Shortener</a></li>
-    </ul>
+    <div id="nav-placeholder" hx-get="includes/nav.html" hx-trigger="load" hx-target="this"></div>
+
+    <div id="container" style="height: 70vh">
+        <h1>Simple Tools Collection - Free Online Tools</h1>
+        <p>Click on a tool to use it:</p>
+    
+        <ul>
+            <li><a href="/tools/array_format.html">Array Formatter</a></li>
+            <li><a href="/tools/json_formatter.html">JSON Formatter</a></li>
+            <li><a href="/tools/markdown_to_html.html">Markdown to HTML</a></li>
+            <li><a href="/tools/base64_converter.html">Base64 Encoder/Decoder</a></li>
+            <li><a href="/tools/word_counter.html">Advanced Word Counter</a></li>
+            <li><a href="/tools/csv_to_json.html">CSV to JSON</a></li>
+            <li><a href="/tools/html_entity_converter.html">HTML Entity Converter</a></li>
+            <li><a href="/tools/password_strength_checker.html">Password Generator & Checker</a></li>
+            <li><a href="/tools/rgb_hex_converter.html">RGB to HEX Converter</a></li>
+            <li><a href="/tools/binary_decimal_converter.html">Binary to Decimal Converter</a></li>
+        </ul>
+    </div>
+
+
 </body>
 </html>

@@ -1,19 +1,300 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Word Counter</title>
-    <script>
-        function countWords() {
-            let text = document.getElementById("text").value.trim();
-            let words = text.split(/\s+/).filter(w => w.length > 0).length;
-            document.getElementById("result").textContent = "Words: " + words;
-        }
-    </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Advanced Word Counter</title>
+  <meta name="description" content="Online word counter tool. Count words, characters, and sentences instantly, useful for writing and content creation.">
 </head>
+
 <body>
-    <h2>Word Counter</h2>
-    <textarea id="text" placeholder="Enter text..."></textarea>
-    <button onclick="countWords()">Count</button>
-    <p id="result"></p>
+    <div id="nav-placeholder"></div>
+    <script>
+      fetch("../includes/nav.html")
+        .then(response => response.text())
+        .then(console.log('run'))
+        .then(data => {
+          document.getElementById("nav-placeholder").innerHTML = data;
+        })
+        .catch(error => console.error("Error loading navigation:", error));
+    </script>
+
+<div id="container" style="justify-self: center;">
+<!-- 容器 -->
+<div style="
+  max-width: 800px;
+  margin: 30px auto;
+  background: #fff;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border-radius: 8px;
+">
+
+  <h2 style="text-align: center; margin-top: 0;">Advanced Word Counter</h2>
+  <p style="color: #555; text-align: center;">
+    Enter or paste text below. Statistics and info will update automatically.
+  </p>
+
+  <!-- 輸入框 -->
+  <textarea
+    id="textArea"
+    placeholder="Type or paste your text here..."
+    style="
+      width: 100%;
+      min-height: 150px;
+      font-size: 14px;
+      padding: 10px;
+      box-sizing: border-box;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      resize: vertical;
+    "
+    oninput="updateStats()"
+  ></textarea>
+
+  <!-- 功能按鈕 & 字數限制 -->
+  <div style="
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 15px;
+    align-items: center;
+  ">
+    <button
+      onclick="clearText()"
+      style="
+        padding: 8px 12px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+      "
+    >
+      Clear
+    </button>
+
+    <button
+      onclick="copyText()"
+      style="
+        padding: 8px 12px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+      "
+    >
+      Copy
+    </button>
+
+    <!-- 字數限制或目標字數 -->
+    <label style="font-size: 14px; margin-left: auto; display: flex; align-items: center;">
+      Word Limit:
+      <input
+        type="number"
+        id="wordLimit"
+        value="100"
+        style="
+          width: 60px;
+          margin-left: 5px;
+          padding: 3px;
+          font-size: 14px;
+        "
+        oninput="updateStats()"
+      />
+    </label>
+  </div>
+
+  <!-- 統計結果 -->
+  <div style="
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 15px;
+    justify-content: space-between;
+  ">
+    <div style="flex: 1; min-width: 120px;">
+      <p id="wordCount" style="font-weight: bold; margin: 5px 0;">Words: 0</p>
+      <p id="charCountNoSpace" style="font-weight: bold; margin: 5px 0;">
+        Characters (no spaces): 0
+      </p>
+      <p id="charCountWithSpace" style="font-weight: bold; margin: 5px 0;">
+        Characters (with spaces): 0
+      </p>
+    </div>
+
+    <div style="flex: 1; min-width: 120px;">
+      <p id="lineCount" style="font-weight: bold; margin: 5px 0;">Lines: 0</p>
+      <p id="paragraphCount" style="font-weight: bold; margin: 5px 0;">Paragraphs: 0</p>
+      <p id="readingTime" style="font-weight: bold; margin: 5px 0;">Reading Time: 0 sec</p>
+    </div>
+
+    <div style="flex: 1; min-width: 120px;">
+      <p id="langDetect" style="font-weight: bold; margin: 5px 0;">
+        Language: N/A
+      </p>
+      <p id="limitWarning" style="
+        font-weight: bold;
+        margin: 5px 0;
+        color: red;
+      "></p>
+    </div>
+  </div>
+
+  <!-- 常見單字區 -->
+  <div>
+    <h3 style="margin: 10px 0 5px;">Most Frequent Words</h3>
+    <ul id="freqWordsList" style="margin: 0; padding-left: 18px;"></ul>
+  </div>
+
+</div>
+
+</div>
+
 </body>
+
+<script>
+    function updateStats() {
+      const text = document.getElementById("textArea").value;
+      const wordLimit = parseInt(document.getElementById("wordLimit").value) || 0;
+    
+      // 1. Word count
+      const wordsArr = text.trim().split(/\s+/).filter(w => w.length > 0);
+      const wordCount = wordsArr.length;
+    
+      // 2. Characters (no space)
+      const charCountNoSpace = text.replace(/\s/g, "").length;
+    
+      // 3. Characters (with space)
+      const charCountWithSpace = text.length;
+    
+      // 4. Line count
+      const lineCount = text.split(/\n/).length;
+    
+      // 5. Paragraph count
+      //   根據空行或連續換行分段 (/(\r?\n\s*\r?\n)/)
+      //   簡化：以「至少一行全空」或「兩次換行」視為分段
+      let paragraphs = text
+        .trim()
+        .split(/\n\s*\n/) // 遇到空白行就分段
+        .filter(p => p.trim().length > 0);
+      const paragraphCount = paragraphs.length;
+    
+      // 6. Estimated reading time
+      //   假設 ~200 wpm => ~3.33 wps
+      let readingTimeSec = Math.ceil(wordCount / 3.33);
+      let timeStr = readingTimeSec + " sec";
+      if (readingTimeSec > 59) {
+        let minutes = Math.floor(readingTimeSec / 60);
+        let seconds = readingTimeSec % 60;
+        timeStr = `${minutes} min ${seconds} sec`;
+      }
+    
+      // 7. Language detection (naive)
+      //   若中文字符比率 > 0.3 & 大於英文字符 => "Chinese (likely)"
+      //   若英文字符比率 > 0.5 => "English (likely)"
+      //   否則 => "Mixed or Others"
+      const totalLen = text.length;
+      let langResult = "N/A";
+      if (totalLen > 0) {
+        let chineseMatch = text.match(/[\u4e00-\u9fff]/g) || [];
+        let letterMatch = text.match(/[a-zA-Z]/g) || [];
+        let cCount = chineseMatch.length;
+        let lCount = letterMatch.length;
+        let ratioC = cCount / totalLen;
+        let ratioL = lCount / totalLen;
+    
+        if (ratioC > 0.3 && ratioC > ratioL) {
+          langResult = "Chinese (likely)";
+        } else if (ratioL > 0.5) {
+          langResult = "English (likely)";
+        } else {
+          langResult = "Mixed or Others";
+        }
+      }
+    
+      // 8. Most frequent words (top 5)
+      //   - 去掉標點，轉小寫，分割
+      const freqWords = getMostFrequentWords(text, 5);
+    
+      // 9. Word limit / threshold
+      let limitWarning = "";
+      if (wordLimit > 0 && wordCount > wordLimit) {
+        limitWarning = `Word limit exceeded! (Limit: ${wordLimit})`;
+      }
+    
+      // --- 更新畫面 ---
+      document.getElementById("wordCount").textContent =
+        "Words: " + wordCount;
+      document.getElementById("charCountNoSpace").textContent =
+        "Characters (no spaces): " + charCountNoSpace;
+      document.getElementById("charCountWithSpace").textContent =
+        "Characters (with spaces): " + charCountWithSpace;
+      document.getElementById("lineCount").textContent =
+        "Lines: " + lineCount;
+      document.getElementById("paragraphCount").textContent =
+        "Paragraphs: " + paragraphCount;
+      document.getElementById("readingTime").textContent =
+        "Reading Time: " + timeStr;
+      document.getElementById("langDetect").textContent =
+        "Language: " + langResult;
+      document.getElementById("limitWarning").textContent = limitWarning;
+    
+      // 更新最常出現單字的清單
+      const freqListEl = document.getElementById("freqWordsList");
+      freqListEl.innerHTML = "";
+      if (freqWords.length === 0) {
+        freqListEl.innerHTML = "<li>No words found</li>";
+      } else {
+        freqWords.forEach(([wd, cnt]) => {
+          let li = document.createElement("li");
+          li.textContent = `${wd} (${cnt})`;
+          freqListEl.appendChild(li);
+        });
+      }
+    }
+    
+    function clearText() {
+      document.getElementById("textArea").value = "";
+      updateStats();
+    }
+    
+    function copyText() {
+      const textArea = document.getElementById("textArea");
+      if (!textArea.value.trim()) {
+        alert("Nothing to copy!");
+        return;
+      }
+      textArea.select();
+      document.execCommand("copy");
+      alert("Text copied to clipboard!");
+    }
+    
+    // 簡易統計最常出現單字
+    function getMostFrequentWords(text, topN = 5) {
+      // 去除標點，保留中文字符, 英文, 數字, 空白 (做最基本處理)
+      // 然而對中文尚未做「分詞」處理, 這裡僅針對英文稍有意義
+      let cleanText = text
+        .toLowerCase()
+        .replace(/[^a-z0-9\u4e00-\u9fff\s']/g, ""); // 移除多餘標點
+    
+      let arr = cleanText.split(/\s+/).filter(w => w.length > 1);
+      if (arr.length === 0) return [];
+    
+      let freq = {};
+      for (let w of arr) {
+        freq[w] = (freq[w] || 0) + 1;
+      }
+      let sorted = Object.entries(freq).sort((a,b) => b[1] - a[1]);
+      return sorted.slice(0, topN);
+    }
+    
+    // 初始化
+    updateStats();
+    </script>
+
 </html>

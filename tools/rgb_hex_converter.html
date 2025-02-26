@@ -1,25 +1,357 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-    <title>RGB to HEX Converter</title>
-    <script>
-        function toHex(rgb) {
-            return rgb.toString(16).padStart(2, '0').toUpperCase();
-        }
-        function convert() {
-            let r = document.getElementById("r").value;
-            let g = document.getElementById("g").value;
-            let b = document.getElementById("b").value;
-            document.getElementById("hex").value = "#" + toHex(parseInt(r)) + toHex(parseInt(g)) + toHex(parseInt(b));
-        }
-    </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RGB ↔ HEX Converter with Pastel Palette</title>
+  <meta name="description" content="Free RGB to HEX color converter. Easily get HEX color codes from RGB values, perfect for designers and developers.">
 </head>
+
 <body>
-    <h2>RGB to HEX Converter</h2>
-    R: <input type="number" id="r" min="0" max="255"> 
-    G: <input type="number" id="g" min="0" max="255"> 
-    B: <input type="number" id="b" min="0" max="255">
-    <button onclick="convert()">Convert</button>
-    <input type="text" id="hex" readonly>
+    <div id="nav-placeholder"></div>
+    <script>
+      fetch("../includes/nav.html")
+        .then(response => response.text())
+        .then(console.log('run'))
+        .then(data => {
+          document.getElementById("nav-placeholder").innerHTML = data;
+        })
+        .catch(error => console.error("Error loading navigation:", error));
+    </script>
+
+<div id="container" style="justify-self: center;">
+<!-- 外層容器，讓內容置中 & 美觀 -->
+    <div style="
+    width: 700px;
+    max-width: 95%;
+    margin: auto;
+    padding: 20px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    ">
+
+    <!-- 區塊 1: RGB ↔ HEX Converter -->
+    <h2 style="margin-top: 0; text-align: center;">RGB ↔ HEX Converter</h2>
+    <p style="font-size: 14px; color: #555; text-align: center; margin-bottom: 20px;">
+        Enter <strong>RGB</strong> or <strong>HEX</strong> value to convert.  
+        The color preview will update immediately.
+    </p>
+
+    <!-- 轉換器容器 -->
+    <div style="
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 30px;
+    ">
+
+        <!-- 左側: RGB 輸入 -->
+        <div style="flex: 1;">
+        <label style="display: block; font-weight: bold; margin-bottom: 5px;">
+            R:
+            <input
+            type="number"
+            id="rInput"
+            min="0"
+            max="255"
+            value="0"
+            style="
+                width: 80px;
+                margin-left: 5px;
+                font-size: 14px;
+                padding: 3px;
+                box-sizing: border-box;
+            "
+            oninput="updateFromRGB()"
+            />
+        </label>
+        <label style="display: block; font-weight: bold; margin-bottom: 5px;">
+            G:
+            <input
+            type="number"
+            id="gInput"
+            min="0"
+            max="255"
+            value="0"
+            style="
+                width: 80px;
+                margin-left: 5px;
+                font-size: 14px;
+                padding: 3px;
+                box-sizing: border-box;
+            "
+            oninput="updateFromRGB()"
+            />
+        </label>
+        <label style="display: block; font-weight: bold; margin-bottom: 5px;">
+            B:
+            <input
+            type="number"
+            id="bInput"
+            min="0"
+            max="255"
+            value="0"
+            style="
+                width: 80px;
+                margin-left: 5px;
+                font-size: 14px;
+                padding: 3px;
+                box-sizing: border-box;
+            "
+            oninput="updateFromRGB()"
+            />
+        </label>
+        </div>
+
+        <!-- 中間: 預覽色塊 -->
+        <div
+        id="previewColor"
+        style="
+            width: 100px;
+            height: 100px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background: #000000;
+            margin: auto;
+        "
+        ></div>
+
+        <!-- 右側: HEX 輸入 -->
+        <div style="flex: 1;">
+        <label style="display: block; font-weight: bold; margin-bottom: 5px;">
+            HEX:
+            <input
+            type="text"
+            id="hexInput"
+            value="#000000"
+            style="
+                width: 100px;
+                margin-left: 5px;
+                font-size: 14px;
+                padding: 3px;
+                box-sizing: border-box;
+                text-transform: uppercase;
+            "
+            oninput="updateFromHex()"
+            />
+        </label>
+        <p style="font-size: 12px; color: #888; margin: 5px 0;">
+            Examples: <em>#FF5733</em>, <em>#FFF</em>
+        </p>
+        </div>
+    </div>
+
+    <!-- 區塊 2: Pastel Palette based on current color -->
+    <h3 style="margin: 0; text-align: center;">Pastel Palette</h3>
+    <p style="font-size: 14px; color: #555; text-align: center; margin-bottom: 10px;">
+        Generate a soft/pastel palette inspired by the above color.
+    </p>
+
+    <div style="text-align: center; margin-bottom: 20px;">
+        <button
+        onclick="generatePastelPalette()"
+        style="
+            padding: 8px 16px;
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+        "
+        >
+        Generate Palette
+        </button>
+    </div>
+
+    <!-- Palette 容器 (顯示多個色塊) -->
+    <div
+        id="paletteContainer"
+        style="
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        justify-content: center;
+        "
+    >
+        <!-- 生成後動態放 Palette item -->
+    </div>
+
+    </div>
+</div>
+
+
 </body>
+
+<script>
+    /**
+     * 1. 將 0~255 轉為兩位16進位 (大寫)
+     */
+    function toHex(num) {
+      let val = Math.max(0, Math.min(255, num));
+      return val.toString(16).padStart(2, '0').toUpperCase();
+    }
+    
+    /**
+     * 2. 將 RGB 轉 HEX
+     */
+    function rgbToHex(r, g, b) {
+      return "#" + toHex(r) + toHex(g) + toHex(b);
+    }
+    
+    /**
+     * 3. HEX 轉 RGB (若失敗返回 null)
+     */
+    function hexToRgb(hex) {
+      hex = hex.trim().replace(/^#/, "");
+      // 支援 #FFF 簡寫
+      if(hex.length === 3) {
+        hex = hex[0]+hex[0] + hex[1]+hex[1] + hex[2]+hex[2];
+      }
+      if(!/^[0-9A-Fa-f]{6}$/.test(hex)) {
+        return null;
+      }
+      let r = parseInt(hex.substr(0,2), 16);
+      let g = parseInt(hex.substr(2,2), 16);
+      let b = parseInt(hex.substr(4,2), 16);
+      return {r, g, b};
+    }
+    
+    /**
+     * 4. 更新畫面: 從 RGB 改變 => 轉 HEX + 預覽
+     */
+    function updateFromRGB() {
+      let r = parseInt(document.getElementById("rInput").value) || 0;
+      let g = parseInt(document.getElementById("gInput").value) || 0;
+      let b = parseInt(document.getElementById("bInput").value) || 0;
+    
+      let hex = rgbToHex(r, g, b);
+      document.getElementById("hexInput").value = hex;
+      document.getElementById("previewColor").style.backgroundColor = hex;
+    }
+    
+    /**
+     * 5. 從 HEX 改變 => 轉 RGB + 預覽
+     */
+    function updateFromHex() {
+      let hexVal = document.getElementById("hexInput").value.trim();
+      let rgb = hexToRgb(hexVal);
+      if(!rgb) return; // 不合法則忽略
+    
+      document.getElementById("rInput").value = rgb.r;
+      document.getElementById("gInput").value = rgb.g;
+      document.getElementById("bInput").value = rgb.b;
+    
+      document.getElementById("previewColor").style.backgroundColor = rgbToHex(rgb.r, rgb.g, rgb.b);
+    }
+    
+    /**
+     * 6. 將 (R,G,B) 轉成 HSL
+     * Ref: https://en.wikipedia.org/wiki/HSL_and_HSV#From_RGB
+     */
+    function rgbToHsl(r, g, b) {
+      r /= 255; g /= 255; b /= 255;
+      let max = Math.max(r,g,b), min = Math.min(r,g,b);
+      let h, s, l = (max + min) / 2;
+    
+      if(max === min) {
+        h = 0; s = 0; // 灰色
+      } else {
+        let d = max - min;
+        s = l > 0.5 ? d/(2 - max - min) : d/(max + min);
+        switch(max) {
+          case r: h = (g - b)/d + (g < b ? 6 : 0); break;
+          case g: h = (b - r)/d + 2; break;
+          case b: h = (r - g)/d + 4; break;
+        }
+        h /= 6;
+      }
+      return { h, s, l };
+    }
+    
+    /**
+     * 7. 將 HSL -> RGB
+     */
+    function hslToRgb(h, s, l) {
+      function hue2rgb(p, q, t) {
+        if(t < 0) t += 1;
+        if(t > 1) t -= 1;
+        if(t < 1/6) return p + (q - p) * 6 * t;
+        if(t < 1/2) return q;
+        if(t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+        return p;
+      }
+    
+      let r, g, b;
+      if(s === 0) {
+        // 灰階
+        r = g = b = l;
+      } else {
+        let q = l < 0.5 ? l*(1+s) : l + s - l*s;
+        let p = 2*l - q;
+        r = hue2rgb(p, q, h + 1/3);
+        g = hue2rgb(p, q, h);
+        b = hue2rgb(p, q, h - 1/3);
+      }
+      return {
+        r: Math.round(r*255),
+        g: Math.round(g*255),
+        b: Math.round(b*255)
+      };
+    }
+    
+    /**
+     * 8. 生成「Pastel Palette」：基於當前顏色，產生 5 種柔和色
+     */
+    function generatePastelPalette() {
+      let r = parseInt(document.getElementById("rInput").value) || 0;
+      let g = parseInt(document.getElementById("gInput").value) || 0;
+      let b = parseInt(document.getElementById("bInput").value) || 0;
+    
+      // 把當前 RGB 轉 HSL
+      let {h, s, l} = rgbToHsl(r,g,b);
+    
+      // 為了生成Pastel，可以增加lightness、降低saturation
+      // 這裡示範一個簡單做法：讓 s 在 [0.2 ~ 0.4]、l 在 [0.7 ~ 0.9] 之間分 5 段
+      // 您也可改成別的演算法(互補色、類似色等等)
+      let paletteContainer = document.getElementById("paletteContainer");
+      paletteContainer.innerHTML = ""; // 先清空
+    
+      for(let i=0; i<5; i++){
+        // 產生 s, l
+        let sVal = 0.2 + i*0.05; // 0.2 ~ 0.4
+        let lVal = 0.7 + i*0.05; // 0.7 ~ 0.9
+        if(sVal > 1) sVal = 1;  // 保底
+        if(lVal > 1) lVal = 1;  // 保底
+    
+        // 同一個色相 h，但 s & l 不同
+        let newRGB = hslToRgb(h, sVal, lVal);
+        let newHex = rgbToHex(newRGB.r, newRGB.g, newRGB.b);
+    
+        // 建立一個色塊 DOM
+        let colorBox = document.createElement("div");
+        colorBox.style.width = "80px";
+        colorBox.style.height = "80px";
+        colorBox.style.border = "1px solid #ccc";
+        colorBox.style.borderRadius = "4px";
+        colorBox.style.backgroundColor = newHex;
+        colorBox.style.display = "flex";
+        colorBox.style.flexDirection = "column";
+        colorBox.style.justifyContent = "center";
+        colorBox.style.alignItems = "center";
+        colorBox.style.fontSize = "12px";
+        colorBox.style.color = "#333";
+    
+        colorBox.textContent = newHex;
+        paletteContainer.appendChild(colorBox);
+      }
+    }
+    
+    // 初始化
+    updateFromRGB();
+</script>
 </html>
