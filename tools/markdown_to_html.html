@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Markdown to HTML</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        function convertMarkdown() {
+            let input = document.getElementById("input").value;
+            document.getElementById("output").innerHTML = marked.parse(input);
+        }
+    </script>
+</head>
+<body>
+    <h2>Markdown to HTML</h2>
+    <textarea id="input" placeholder="Enter Markdown..."></textarea>
+    <button onclick="convertMarkdown()">Convert</button>
+    <div id="output"></div>
+</body>
+</html>

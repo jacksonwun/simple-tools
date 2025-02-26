@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RGB to HEX Converter</title>
+    <script>
+        function toHex(rgb) {
+            return rgb.toString(16).padStart(2, '0').toUpperCase();
+        }
+        function convert() {
+            let r = document.getElementById("r").value;
+            let g = document.getElementById("g").value;
+            let b = document.getElementById("b").value;
+            document.getElementById("hex").value = "#" + toHex(parseInt(r)) + toHex(parseInt(g)) + toHex(parseInt(b));
+        }
+    </script>
+</head>
+<body>
+    <h2>RGB to HEX Converter</h2>
+    R: <input type="number" id="r" min="0" max="255"> 
+    G: <input type="number" id="g" min="0" max="255"> 
+    B: <input type="number" id="b" min="0" max="255">
+    <button onclick="convert()">Convert</button>
+    <input type="text" id="hex" readonly>
+</body>
+</html>

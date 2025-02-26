@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CSV to JSON</title>
+    <script>
+        function convertCSV() {
+            let csv = document.getElementById("csv").value.split("\n");
+            let keys = csv[0].split(",");
+            let json = csv.slice(1).map(line => {
+                let values = line.split(",");
+                return Object.fromEntries(keys.map((key, i) => [key, values[i]]));
+            });
+            document.getElementById("output").textContent = JSON.stringify(json, null, 4);
+        }
+    </script>
+</head>
+<body>
+    <h2>CSV to JSON</h2>
+    <textarea id="csv" placeholder="Enter CSV..."></textarea>
+    <button onclick="convertCSV()">Convert</button>
+    <pre id="output"></pre>
+</body>
+</html>
