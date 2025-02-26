@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>HTML Entity Converter</title>
+    <script>
+        function encode() {
+            let text = document.getElementById("input").value;
+            document.getElementById("output").value = text.replace(/./g, c => `&#${c.charCodeAt(0)};`);
+        }
+        function decode() {
+            let text = document.getElementById("output").value;
+            document.getElementById("input").value = text.replace(/&#(\d+);/g, (_, n) => String.fromCharCode(n));
+        }
+    </script>
+</head>
+<body>
+    <h2>HTML Entity Converter</h2>
+    <textarea id="input" placeholder="Enter text..."></textarea>
+    <button onclick="encode()">Encode</button>
+    <button onclick="decode()">Decode</button>
+    <textarea id="output" placeholder="HTML entities result..."></textarea>
+</body>
+</html>

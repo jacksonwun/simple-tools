@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Binary to Decimal Converter</title>
+    <script>
+        function toDecimal() {
+            let binary = document.getElementById("binary").value;
+            document.getElementById("decimal").value = parseInt(binary, 2);
+        }
+        function toBinary() {
+            let decimal = document.getElementById("decimal").value;
+            document.getElementById("binary").value = Number(decimal).toString(2);
+        }
+    </script>
+</head>
+<body>
+    <h2>Binary to Decimal Converter</h2>
+    Binary: <input type="text" id="binary" placeholder="Enter binary..."> 
+    <button onclick="toDecimal()">Convert to Decimal</button>
+    <input type="text" id="decimal" readonly>
+
+    <br><br>
+    Decimal: <input type="text" id="decimal" placeholder="Enter decimal..."> 
+    <button onclick="toBinary()">Convert to Binary</button>
+    <input type="text" id="binary" readonly>
+</body>
+</html>

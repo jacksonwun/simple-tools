@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Base64 Encoder/Decoder</title>
+    <script>
+        function encode() {
+            let input = document.getElementById("input").value;
+            document.getElementById("output").value = btoa(input);
+        }
+        function decode() {
+            let input = document.getElementById("output").value;
+            document.getElementById("input").value = atob(input);
+        }
+    </script>
+</head>
+<body>
+    <h2>Base64 Encoder/Decoder</h2>
+    <textarea id="input" placeholder="Enter text..."></textarea>
+    <button onclick="encode()">Encode</button>
+    <button onclick="decode()">Decode</button>
+    <textarea id="output" placeholder="Base64 result..."></textarea>
+</body>
+</html>
