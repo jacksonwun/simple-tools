@@ -3,7 +3,7 @@ import time
 import xml.etree.ElementTree as ET
 
 # Configuration
-DOMAIN = "mytool.agency"
+DOMAIN = "https://mytool.agency"
 SCAN_DIRECTORY = "."  # Change to your local site folder
 OUTPUT_FILE = "sitemap.xml"
 FREQ = "daily"  # Options: always, hourly, daily, weekly, monthly, yearly, never
