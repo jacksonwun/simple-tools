@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>可調參數的背景移除</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix"></script>
+</head>
+<body>
+
+    <h2>移除背景（可調參數）</h2>
+    
+    <input type="file" id="upload" accept="image/*"><br><br>
+
+    <label>閾值 (segmentationThreshold): 
+        <input type="range" id="threshold" min="0" max="1" step="0.01" value="0.7">
+    </label> <span id="thresholdValue">0.7</span> <br>
+
+    <label>邊緣模糊度 (blurRadius): 
+        <input type="range" id="blur" min="0" max="10" step="1" value="3">
+    </label> <span id="blurValue">3</span> <br>
+
+    <label>前景透明度 (opacity): 
+        <input type="range" id="opacity" min="0" max="1" step="0.1" value="1">
+    </label> <span id="opacityValue">1</span> <br><br>
+
+    <canvas id="canvas"></canvas><br><br>
+
+    <button id="download">下載透明背景圖片</button>
+
+    <script>
+        let image, net;
+
+        async function loadModel() {
+            net = await bodyPix.load();
+        }
+
+        document.getElementById("upload").addEventListener("change", async function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                image = new Image();
+                image.src = e.target.result;
+                image.onload = processImage;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        async function processImage() {
+            if (!image) return;
+            
+            const canvas = document.getElementById("canvas");
+            const ctx = canvas.getContext("2d");
+            canvas.width = image.width;
+            canvas.height = image.height;
+            ctx.drawImage(image, 0, 0);
+
+            // 取得使用者參數
+            const threshold = parseFloat(document.getElementById("threshold").value);
+            const blurRadius = parseInt(document.getElementById("blur").value);
+            const opacity = parseFloat(document.getElementById("opacity").value);
+
+            // 取得分割結果
+            const segmentation = await net.segmentPerson(image, {
+                internalResolution: 'medium',
+                segmentationThreshold: threshold
+            });
+
+            const mask = bodyPix.toMask(segmentation, { r: 0, g: 0, b: 0, a: 0 }, { r: 255, g: 255, b: 255, a: opacity * 255 });
+
+            bodyPix.drawMask(canvas, image, mask, opacity, blurRadius);
+        }
+
+        document.getElementById("threshold").addEventListener("input", function() {
+            document.getElementById("thresholdValue").innerText = this.value;
+            processImage();
+        });
+
+        document.getElementById("blur").addEventListener("input", function() {
+            document.getElementById("blurValue").innerText = this.value;
+            processImage();
+        });
+
+        document.getElementById("opacity").addEventListener("input", function() {
+            document.getElementById("opacityValue").innerText = this.value;
+            processImage();
+        });
+
+        document.getElementById("download").addEventListener("click", function() {
+            const canvas = document.getElementById("canvas");
+            const link = document.createElement("a");
+            link.download = "transparent_image.png";
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+        });
+
+        loadModel();
+    </script>
+
+</body>
+</html>
